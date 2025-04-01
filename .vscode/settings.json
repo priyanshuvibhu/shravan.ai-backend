@@ -1,0 +1,7 @@
+{
+    "python.pythonPath": "./venv/bin/python", // Use ".\venv\Scripts\python.exe" on Windows
+    "editor.formatOnSave": true,
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true
+  }
+  
