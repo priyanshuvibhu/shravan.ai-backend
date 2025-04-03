@@ -30,7 +30,7 @@ async def get_enhanced_chatbot_response(mood: str, user_message: str) -> str:
         "Now, please interact like a caring son who genuinely cares about you. "
         "Make the response short and simple thinking as the user as an old person. "
         "Keep the language warm, personal, and supportive, like a loving son would speak to his parent."
-        "Don't address the user with mother or father and do remember you are a mental health chatbot."
+        "Don't address the user with mother or father and do remember you are a chatbot."
     )
     enhanced_response = await query_gemini_api(base_response)
     return enhanced_response
