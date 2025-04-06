@@ -1,12 +1,13 @@
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, File, UploadFile
 from pydantic import BaseModel
 from chatbot import get_enhanced_chatbot_response  # Your enhanced chatbot function using Gemini API
 from firebase_config import db  # Import the Firestore client
 from firebase_admin import firestore  # Import firestore for SERVER_TIMESTAMP
 from auth_utils import verify_token  # Import our token verification function
 from fastapi.middleware.cors import CORSMiddleware
-from history_utils import get_conversation_history, get_user_profile, update_user_profile  # Import our helper functions
+from history_utils import get_conversation_history, get_user_profile, update_user_profile  # Import helper functions
 import traceback  # For detailed error reporting
+from emotion_detection import analyze_face_emotion  # Import the emotion analysis function
 
 app = FastAPI(title="shravan.ai Backend API")
 
@@ -24,7 +25,7 @@ class ChatRequest(BaseModel):
     mood: str
     message: str
 
-# Updated /chat endpoint that includes conversation history and user profile
+# /chat endpoint that includes conversation history and user profile
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest, authorization: str = Header(...)):
     try:
@@ -98,12 +99,11 @@ async def chat_endpoint(request: ChatRequest, authorization: str = Header(...)):
             "timestamp": firestore.SERVER_TIMESTAMP  # Automatically sets the current server time
         }
         
-        # Save conversation to Firestore
+        # Save conversation to Firestore and update user profile
         try:
             db.collection("conversations").add(conversation)
             print("Successfully saved conversation to Firestore")
             
-            # Update user profile based on the conversation
             update_user_profile(uid, request.message, request.mood, response_text)
             print("Successfully updated user profile")
             
@@ -117,6 +117,54 @@ async def chat_endpoint(request: ChatRequest, authorization: str = Header(...)):
         print(f"General error: {str(e)}")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
+
+# Emotion detection endpoint
+@app.post("/api/detect-emotion")
+async def detect_emotion(file: UploadFile = File(...), authorization: str = Header(...)):
+    try:
+        print(f"Received emotion detection request with auth: {authorization[:15]}...")
+        
+        # Verify the user's token
+        user_info = await verify_token(authorization)
+        uid = user_info.get("uid")
+        print(f"User authenticated: {uid}")
+        
+        # Read the image content
+        image_content = await file.read()
+        print(f"Received image of size: {len(image_content)} bytes")
+        
+        # Analyze the image for emotions
+        emotions = await analyze_face_emotion(image_content)
+        print(f"Analysis complete: {emotions}")
+        
+        # Map Google Vision API emotions to our mood categories
+        emotion_to_mood_map = {
+            "joy": "happy",
+            "sorrow": "sad",
+            "anger": "angry",
+            "surprise": "excited",
+            "neutral": "neutral"
+        }
+        
+        # Find the dominant emotion
+        dominant_emotion = max(emotions.items(), key=lambda x: x[1])
+        detected_mood = emotion_to_mood_map.get(dominant_emotion[0], "neutral")
+        
+        # Return the detected emotions and mapped mood
+        result = {
+            "emotions": emotions,
+            "dominant_emotion": dominant_emotion[0],
+            "confidence": dominant_emotion[1],
+            "mood": detected_mood
+        }
+        print(f"Returning result: {result}")
+        return result
+    
+    except Exception as e:
+        error_msg = f"Error detecting emotion: {str(e)}"
+        print(error_msg)
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @app.get("/")
 def read_root():

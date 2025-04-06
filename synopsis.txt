@@ -1,0 +1,70 @@
+Project Overview: shravan.ai
+Project Name: shravan.ai
+
+Project Purpose:
+shravan.ai is an AI-powered mental wellness platform designed specifically for elderly users. Its central feature is a compassionate chatbot that responds like a caring son—providing empathetic, context-aware mental health support and guidance. The platform combines advanced mood detection, AR meditation, gamified wellness journeys, and personalized content recommendations to promote overall well-being. this project is for the google solutions challenge so we are going to use google technologies 
+
+Core Features
+AI Chatbot for Mental Wellness:
+    Primary Role: Acts as a caring companion with a son‑like tone.
+    Response Style: Provides empathetic, warm, and personalized mental health support.
+
+Mood Detection :
+    Data Sources: Analyzes text, voice, facial expressions, health stats, and content habits.
+    Purpose: Determines the user's current mood to tailor chatbot responses and other features.
+
+AR Meditation Experience:
+    Functionality: Offers guided augmented reality meditation sessions.
+    Impact: Aims to reduce stress , providing a visually engaging and calming experience.
+
+Gamified Wellness Journey:
+    Engagement: Uses interactive and gamified elements to track progress.
+    Result: Boosting user engagement , motivating users to continue with their wellness routines.
+
+Personalized Content Recommendations via youtube Integration:
+    Capability: Delivers 200+ tailored music and content suggestions based on the user's mood.
+    Goal: Enhance user experience by providing relevant and mood-aligned media.
+
+Conversation Context & History Retrieval:
+    Context Window: Maintains a chat history for each user by retrieving recent conversation entries from Firestore.
+    Integration: The conversation history is appended to the chatbot prompt, ensuring responses are contextually relevant and coherent over multiple interactions.
+
+User Authentication & Data Security:
+
+    Firebase Authentication: Secures API endpoints by requiring user sign‑in.
+    Firestore Storage: All conversation data (including user messages, chatbot responses, moods, and timestamps) are stored in Firestore.
+    Token Verification: FastAPI endpoints verify Firebase ID tokens to ensure that interactions are authenticated and linked to the correct user.
+
+Technical Stack
+    Backend Framework: FastAPI (Python)
+        Provides a high-performance API backend with asynchronous support.
+
+    Chatbot Logic:
+        Rule‑based and LLM Enhanced: Uses Gemini API to generate responses based on user mood and conversation history.
+
+    Data Persistence: Firebase Firestore
+        Stores conversation history, user interactions, and additional metadata.
+
+    User Authentication: Firebase Authentication
+        Manages user sign‑in, token generation, and secure access to backend services.
+
+    Frontend: Simple HTML/JavaScript Interface
+        Allows users to log in (using Firebase client SDK) and send chat messages.
+        Provides an interactive, real‑time communication channel with the backend.
+
+    Development Environment: Visual Studio Code
+        Uses a Python virtual environment with essential VS Code extensions for Python development (e.g., Microsoft Python Extension, Pylance, GitLens, autoDocstring).
+
+
+Future Enhancements
+    User Profile Management:
+        Build endpoints for users to view and update their profile information.
+
+    Analytics Dashboard:
+        Develop tools to analyze conversation trends, mood changes, and user engagement over time.
+
+    Advanced Personalization:
+        Incorporate more nuanced context handling and AI model fine-tuning for personalized therapy sessions.
+
+    Mobile App Integration:
+        Consider developing a mobile front end using Flutter for a unified, cross-platform experience.

@@ -19,9 +19,10 @@ def get_conversation_history(uid: str, limit: int = 8) -> str:
     # Query Firestore for the most recent conversations for this user
     try:
         query = (db.collection("conversations")
-                 .where("uid", "==", uid)
-                 .order_by("timestamp", direction="DESCENDING")
+                 .where(field_path="uid", op_string="==", value=uid)
+                 .order_by("timestamp", direction=firestore.Query.DESCENDING)
                  .limit(limit))
+
         
         docs = query.stream()  # Use stream() instead of get()
         
