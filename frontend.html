@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shravan.ai Chatbot</title>
+    <!-- Firebase SDK v9 -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #10a37f;
+            --sidebar-bg: #202123;
+            --main-bg: #343541;
+            --chat-bg: #444654;
+            --user-bubble: #343541;
+            --bot-bubble: #444654;
+            --text-color: #fff;
+            --border-color: #565869;
+            --input-bg: #40414f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            color: var(--text-color);
+            background-color: var(--main-bg);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar-header {
+            padding: 15px 10px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-section {
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-section h3 {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .auth-container {
+            padding: 10px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .auth-form input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .auth-form button {
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+        }
+
+        .auth-status {
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Chat container */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .welcome-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 0 20%;
+        }
+
+        .welcome-container h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+
+        .welcome-container p {
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .message {
+            display: flex;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .user-message {
+            background-color: var(--user-bubble);
+        }
+
+        .bot-message {
+            background-color: var(--bot-bubble);
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            background-color: var(--primary-color);
+        }
+
+        .user-avatar {
+            background-color: #5436DA;
+        }
+
+        .message-content {
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        /* Input area */
+        .input-container {
+            padding: 15px 30px 30px;
+            position: sticky;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-box {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--input-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 8px 15px;
+        }
+
+        .mood-selector {
+            margin-right: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        .mood-selector option {
+            background-color: var(--chat-bg);
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background-color: transparent;
+            color: var(--text-color);
+            outline: none;
+            resize: none;
+            height: 24px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .send-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .send-btn i {
+            font-size: 1.2rem;
+        }
+
+        .send-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .disclaimer {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        /* Make the UI responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Shravan.ai</h2>
+        </div>
+
+        <button class="new-chat-btn">
+            <i class="fas fa-plus"></i> New Chat
+        </button>
+
+        <div class="sidebar-section">
+            <h3>AUTHENTICATION</h3>
+            <div class="auth-container">
+                <!-- Register Form -->
+                <form id="registerForm" class="auth-form">
+                    <input type="email" id="registerEmail" placeholder="Email" required />
+                    <input type="password" id="registerPassword" placeholder="Password" required />
+                    <button type="submit">Register</button>
+                </form>
+                <div id="registerStatus" class="auth-status"></div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form">
+                    <input type="email" id="email" placeholder="Email" required />
+                    <input type="password" id="password" placeholder="Password" required />
+                    <button type="submit">Login</button>
+                </form>
+                <div id="loginStatus" class="auth-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+        <!-- Chat messages container -->
+        <div id="chatContainer" class="chat-container">
+            <!-- Welcome message when no chat is active -->
+            <div id="welcomeContainer" class="welcome-container">
+                <h1>Shravan.ai</h1>
+                <p>I'm your caring companion, here to listen and support you. How are you feeling today?</p>
+            </div>
+        </div>
+
+        <!-- Input area -->
+        <div class="input-container">
+            <div class="input-box">
+                <select id="mood" class="mood-selector" required>
+                    <option value="" disabled selected>Mood</option>
+                    <option value="happy">Happy</option>
+                    <option value="sad">Sad</option>
+                    <option value="anxious">Anxious</option>
+                    <option value="tired">Tired</option>
+                    <option value="confused">Confused</option>
+                    <option value="lonely">Lonely</option>
+                </select>
+                <textarea id="message" class="message-input" placeholder="Type your message here..." required
+                    rows="1"></textarea>
+                <button id="sendBtn" class="send-btn" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p class="disclaimer">Shravan.ai is designed to be a supportive companion, not a replacement for
+                professional care.</p>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCY8l2_a7mB9dcaaMYYc4iAZhyEqN3vh4g",
+            authDomain: "shravan-ai.firebaseapp.com",
+            projectId: "shravan-ai",
+            storageBucket: "shravan-ai.firebasestorage.app",
+            messagingSenderId: "847424234048",
+            appId: "1:847424234048:web:95bcc93faad14f2cd535a5",
+            measurementId: "G-C6LWS3VGBZ"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        let idToken = null;
+        let isLoggedIn = false;
+
+        // Auto-resize the textarea as user types
+        const messageInput = document.getElementById('message');
+        messageInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Enable/disable send button based on input and mood selection
+        function updateSendButtonState() {
+            const messageInput = document.getElementById('message');
+            const moodSelect = document.getElementById('mood');
+            const sendBtn = document.getElementById('sendBtn');
+
+            if (messageInput.value.trim() && moodSelect.value && isLoggedIn) {
+                sendBtn.disabled = false;
+            } else {
+                sendBtn.disabled = true;
+            }
+        }
+
+        document.getElementById('message').addEventListener('input', updateSendButtonState);
+        document.getElementById('mood').addEventListener('change', updateSendButtonState);
+
+        // Handle registration form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                document.getElementById('registerStatus').innerText = 'Registration successful! You can now log in.';
+            } catch (error) {
+                document.getElementById('registerStatus').innerText = 'Registration failed: ' + error.message;
+            }
+        });
+
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                // Retrieve the Firebase ID token
+                idToken = await user.getIdToken();
+                isLoggedIn = true;
+                document.getElementById('loginStatus').innerText = 'Login successful!';
+                updateSendButtonState();
+                // Hide welcome screen once logged in
+                document.getElementById('welcomeContainer').style.display = 'none';
+            } catch (error) {
+                document.getElementById('loginStatus').innerText = 'Login failed: ' + error.message;
+            }
+        });
+
+        // Function to add a message to the chat container
+        function addMessageToChat(content, isUser) {
+            const welcomeContainer = document.getElementById('welcomeContainer');
+            if (welcomeContainer) {
+                welcomeContainer.style.display = 'none';
+            }
+
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = isUser ? 'avatar user-avatar' : 'avatar';
+            avatarDiv.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+
+            // Scroll to the bottom of the chat
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Handle new chat button
+        document.querySelector('.new-chat-btn').addEventListener('click', () => {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = `
+                <div id="welcomeContainer" class="welcome-container">
+                    <h1>Shravan.ai</h1>
+                    <p>I'm your caring companion, here to listen and support you. How are you feeling today?</p>
+                </div>
+            `;
+        });
+
+        // Handle chat form submission
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            if (!isLoggedIn) {
+                alert('Please log in first.');
+                return;
+            }
+
+            const mood = document.getElementById('mood').value;
+            const message = document.getElementById('message').value.trim();
+
+            if (!mood || !message) return;
+
+            // Add user message to chat
+            addMessageToChat(message, true);
+
+            // Clear input field and reset height
+            document.getElementById('message').value = '';
+            document.getElementById('message').style.height = '24px';
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + idToken
+                    },
+                    body: JSON.stringify({ mood, message })
+                });
+
+                const data = await response.json();
+
+                // Add bot response to chat
+                addMessageToChat(data.response, false);
+            } catch (error) {
+                addMessageToChat('Error: ' + error.message, false);
+            }
+
+            updateSendButtonState();
+        });
+
+        // Also allow sending message with Enter key
+        document.getElementById('message').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!document.getElementById('sendBtn').disabled) {
+                    document.getElementById('sendBtn').click();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

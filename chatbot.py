@@ -24,13 +24,7 @@ async def query_gemini_api(prompt: str) -> str:
         except (KeyError, IndexError):
             return "I'm here for you, always."
 
-async def get_enhanced_chatbot_response(mood: str, user_message: str) -> str:
-    base_response = (
-        f"Based on user mood ({mood}), user said: '{user_message}'. "
-        "You are a compassionate mental health chatbot for elderly people."
-        "Now, please interact emphatically like a caring son who genuinely cares about you. "
-        "Keep the response short and the language warm, personal, and supportive, like a loving son would speak to his parent."
-        "Don't address the user with mother or father and do remember you are a chatbot. reply the user on what he/she said."
-    )
-    enhanced_response = await query_gemini_api(base_response)
+async def get_enhanced_chatbot_response(prompt: str) -> str:
+    # The prompt now contains the complete context including history and instructions
+    enhanced_response = await query_gemini_api(prompt)
     return enhanced_response
